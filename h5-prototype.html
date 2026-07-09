@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>鹅码通 - 扬州老鹅摊点管理平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#D4380D;--primary-light:#FF6B35;--green:#16a34a;--green-bg:#f0fdf4;--yellow:#ca8a04;--yellow-bg:#fefce8;--red:#dc2626;--red-bg:#fef2f2;--blue:#2563eb;--blue-bg:#eff6ff;--gray:#6b7280;--gray-bg:#f9fafb;--dark:#111827;--border:#e5e7eb;--bg:#f5f5f5}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden;color:var(--dark)}
+
+/* 底部Tab */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 0;cursor:pointer;transition:color .15s;color:var(--gray)}
+.tab-item.active{color:var(--primary)}
+.tab-item .icon{font-size:22px;margin-bottom:1px;line-height:1}
+.tab-item .label{font-size:10px}
+
+/* 页面容器 */
+.page{display:none;padding-bottom:70px;animation:pageIn .25s ease}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* 通用卡片 */
+.card{background:#fff;border-radius:12px;padding:16px;margin:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--gray);flex-shrink:0;width:80px;font-size:13px}
+.info-value{color:var(--dark);text-align:right;flex:1;word-break:break-all;font-size:13px}
+
+/* 标签 */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.tag-red{background:var(--red-bg);color:var(--red)}
+.tag-blue{background:var(--blue-bg);color:var(--blue)}
+
+/* 按钮 */
+.btn{display:block;width:100%;padding:12px;border-radius:8px;font-size:15px;font-weight:500;border:none;cursor:pointer;text-align:center;transition:opacity .15s;font-family:inherit}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-outline{background:#fff;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-ghost{background:transparent;color:var(--gray);border:none;font-size:13px;padding:8px 0;text-align:left}
+.btn-sm{padding:6px 14px;font-size:13px;width:auto;border-radius:6px}
+
+/* 表单 */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:13px;color:#374151;margin-bottom:6px;font-weight:500}
+.form-label .req{color:var(--red)}
+.form-input{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;transition:border .15s;background:#fff}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(212,56,13,.08)}
+.form-input:disabled{background:#f9fafb;color:var(--gray)}
+textarea.form-input{resize:vertical;min-height:80px}
+.form-hint{font-size:11px;color:var(--gray);margin-top:4px}
+.form-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+
+/* 标签选择 */
+.tag-group{display:flex;flex-wrap:wrap;gap:8px}
+.tag-btn{padding:7px 16px;border-radius:20px;font-size:13px;border:1px solid #d1d5db;background:#fff;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--dark)}
+.tag-btn.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* 评分按钮 */
+.score-group{display:flex;gap:6px}
+.score-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid #d1d5db;background:#fff;cursor:pointer;font-size:12px;transition:all .12s;font-family:inherit;color:var(--dark)}
+.score-btn.selected{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* 上传区域 */
+.upload-area{border:1.5px dashed #d1d5db;border-radius:8px;padding:20px;text-align:center;color:#9ca3af;cursor:pointer;font-size:13px;background:#fafafa;transition:border .15s}
+.upload-area:active{border-color:var(--primary)}
+.upload-grid{display:flex;gap:8px;flex-wrap:wrap}
+.upload-item{width:72px;height:72px;border-radius:8px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:24px;color:#9ca3af;position:relative;overflow:hidden;border:1.5px dashed #d1d5db;cursor:pointer}
+.upload-item.has-img{border-style:solid;background:#e5e7eb}
+.upload-item .del{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* 全屏Modal */
+.full-modal{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;background:var(--bg);z-index:200;display:none;flex-direction:column}
+.full-modal.show{display:flex}
+.full-modal-header{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.full-modal-header .back{font-size:20px;cursor:pointer;color:var(--dark);width:28px;display:flex;align-items:center;justify-content:center}
+.full-modal-header .title{font-size:16px;font-weight:600;flex:1}
+.full-modal-header .action{font-size:14px;color:var(--primary);cursor:pointer;font-weight:500}
+.full-modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* 底部弹出 */
+.bottom-sheet-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:250;display:none}
+.bottom-sheet-mask.show{display:block}
+.bottom-sheet{position:fixed;bottom:-100%;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;z-index:260;border-radius:16px 16px 0 0;transition:bottom .3s ease;max-height:92vh;display:flex;flex-direction:column}
+.bottom-sheet.open{bottom:0}
+.bottom-sheet-handle{width:36px;height:4px;border-radius:2px;background:#d1d5db;margin:8px auto 4px}
+.bottom-sheet-title{padding:8px 16px 12px;font-size:16px;font-weight:600;border-bottom:1px solid var(--border)}
+.bottom-sheet-body{flex:1;overflow-y:auto;padding:16px}
+
+/* Toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* 成功弹窗 */
+.success-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center}
+.success-overlay.show{display:flex}
+.success-box{background:#fff;border-radius:16px;padding:32px 24px;margin:24px;text-align:center;width:100%;max-width:350px}
+
+/* 扫码公示页 */
+.stall-header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:20px 16px;color:#fff;border-radius:0 0 20px 20px}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+.section-tabs{display:flex;margin:12px 16px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.section-tab{flex:1;text-align:center;padding:10px 0;font-size:13px;cursor:pointer;color:var(--gray);position:relative;transition:all .15s}
+.section-tab.active{color:var(--primary);font-weight:600}
+.section-tab.active::after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2.5px;background:var(--primary);border-radius:2px}
+.panel{display:none;animation:pageIn .2s ease}
+.panel.active{display:block}
+.cert-card{background:linear-gradient(135deg,#1a5632,#2d8a56);border-radius:12px;padding:20px;color:#fff;position:relative;overflow:hidden}
+.cert-card::after{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.05)}
+.cert-seal{position:absolute;bottom:14px;right:18px;width:56px;height:56px;border:2px solid rgba(255,215,0,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,215,0,.5);text-align:center;transform:rotate(-15deg)}
+
+/* 老鹅地图 */
+.map-container{position:relative;height:calc(100vh - 125px);background:#e8e4df}
+.search-bar{background:#fff;padding:10px 16px;display:flex;gap:8px;position:sticky;top:0;z-index:5}
+.search-input{flex:1;border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;outline:none}
+.map-nav-btns{display:flex;gap:6px;margin:0 16px 8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.map-nav-btn{white-space:nowrap;padding:5px 12px;border-radius:16px;font-size:12px;background:#fff;border:1px solid var(--border);cursor:pointer;flex-shrink:0;transition:all .15s}
+.map-nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.map-overlay{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:16px;max-height:50vh;overflow-y:auto}
+.map-pin{position:absolute;cursor:pointer;transition:transform .2s;z-index:5}
+.map-pin:active{transform:scale(1.1)}
+.stall-list-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .1s}
+.stall-list-item:active{background:#f9fafb}
+.stall-list-item:last-child{border-bottom:none}
+.stall-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;margin-right:12px}
+
+/* 摊主端 */
+.vendor-header{background:linear-gradient(135deg,#1a5632,#2d8a56);padding:20px 16px;color:#fff}
+.vendor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:-20px 16px 0;position:relative;z-index:2}
+.stat-card{background:#fff;border-radius:10px;padding:14px 8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.stat-num{font-size:20px;font-weight:700}
+.stat-label{font-size:11px;color:var(--gray);margin-top:2px}
+.vendor-menu{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 16px 0}
+.menu-item{background:#fff;border-radius:10px;padding:14px 6px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05);cursor:pointer;transition:transform .12s}
+.menu-item:active{transform:scale(.95)}
+.menu-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:18px}
+.menu-text{font-size:11px;color:#374151;line-height:1.3}
+.menu-badge{position:relative}
+.menu-badge::after{content:'';position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+
+/* 执法人员端 */
+.law-header{background:linear-gradient(135deg,#1e3a5f,#3b6ea5);padding:20px 16px;color:#fff}
+.law-card{background:#fff;border-radius:12px;padding:18px 16px;box-shadow:0 1px 4px rgba(0,0,0,.05);cursor:pointer;transition:all .15s}
+.law-card:active{transform:scale(.97)}
+
+/* 图片查看 */
+.img-viewer{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column}
+.img-viewer.show{display:flex}
+
+/* 审核状态条 */
+.audit-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:14px}
+.audit-pending{background:var(--yellow-bg);color:#92400e}
+.audit-approved{background:var(--green-bg);color:#166534}
+.audit-rejected{background:var(--red-bg);color:#991b1b}
+
+/* 证照项 */
+.cert-item{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #f3f4f6}
+.cert-item:last-child{border-bottom:none}
+.cert-item-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-right:12px}
+.cert-item-info{flex:1}
+.cert-item-name{font-size:14px;font-weight:500}
+.cert-item-desc{font-size:12px;color:var(--gray);margin-top:2px}
+.cert-item-action{flex-shrink:0}
+
+/* 检查时间线 */
+.timeline-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.timeline-item:not(:last-child)::after{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:#f3f4f6}
+.timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:2px solid}
+.timeline-dot.green{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.timeline-dot.yellow{border-color:var(--yellow);background:var(--yellow-bg);color:var(--yellow)}
+.timeline-dot.red{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+
+/* 消息项 */
+.msg-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f3f4f6;cursor:pointer}
+.msg-item:last-child{border-bottom:none}
+.msg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.msg-dot.unread{background:var(--primary)}
+.msg-dot.read{background:#d1d5db}
+.msg-content{flex:1}
+.msg-title{font-size:14px;font-weight:500}
+.msg-desc{font-size:12px;color:var(--gray);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.msg-time{font-size:11px;color:#9ca3af;flex-shrink:0;margin-top:2px}
+
+/* 列表切换 */
+.sub-tabs{display:flex;gap:0;margin:0 16px;background:#fff;border-radius:8px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.sub-tab{flex:1;text-align:center;padding:9px 0;font-size:13px;cursor:pointer;color:var(--gray);transition:all .15s;border-bottom:2px solid transparent}
+.sub-tab.active{color:var(--primary);font-weight:500;border-bottom-color:var(--primary)}
+
+/* Switch */
+.switch{position:relative;width:44px;height:24px;border-radius:12px;background:#d1d5db;cursor:pointer;transition:background .2s}
+.switch.on{background:var(--primary)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on::after{transform:translateX(20px)}
+
+/* 空状态 */
+.empty-state{text-align:center;padding:40px 20px;color:#9ca3af}
+.empty-state .icon{font-size:44px;margin-bottom:10px;opacity:.3}
+.empty-state .text{font-size:14px}
+.empty-state .sub{font-size:12px;margin-top:4px}
+
+/* 登录页 */
+.login-page{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;z-index:500;display:none;flex-direction:column;background:#fff}
+.login-page.show{display:flex}
+.login-header{flex-shrink:0;padding:40px 24px 20px;text-align:center}
+.login-logo{width:64px;height:64px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:12px}
+.login-title{font-size:20px;font-weight:700;color:var(--dark)}
+.login-subtitle{font-size:13px;color:var(--gray);margin-top:4px}
+.login-body{flex:1;padding:0 24px;overflow-y:auto}
+.login-footer{flex-shrink:0;padding:16px 24px 30px;text-align:center;font-size:12px;color:#9ca3af}
+.login-close{position:absolute;top:16px;left:16px;width:32px;height:32px;border-radius:50%;background:var(--gray-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--gray);z-index:1}
+.login-tab-bar{display:flex;margin-bottom:24px;border-bottom:1px solid var(--border)}
+.login-tab{flex:1;padding:10px 0;font-size:14px;color:var(--gray);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.login-tab.active{color:var(--primary);font-weight:500;border-bottom-color:var(--primary)}
+.login-form{display:none}
+.login-form.active{display:block}
+.sms-row{display:flex;gap:8px}
+.sms-row .form-input{flex:1}
+.sms-btn{white-space:nowrap;padding:10px 14px;border-radius:8px;border:1px solid var(--primary);background:#fff;color:var(--primary);font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0;transition:opacity .15s}
+.sms-btn:active{opacity:.7}
+.sms-btn.disabled{color:var(--gray);border-color:#d1d5db;cursor:not-allowed}
+.login-protocol{font-size:11px;color:var(--gray);margin-top:14px;line-height:1.6}
+.login-protocol a{color:var(--primary);text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================ -->
+<!-- 页面1: 扫码公示 -->
+<!-- ============================================ -->
+<div id="page-scan" class="page active">
+  <div class="stall-header">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:24px">🪿</div>
+      <div>
+        <div style="font-size:18px;font-weight:700">扬州老鹅</div>
+        <div style="color:#FFD700;font-size:15px;margin-top:1px;letter-spacing:2px">★ ★ ★ ★ ★</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+      <span style="background:rgba(255,255,255,.22);padding:2px 10px;border-radius:20px"><span class="status-dot" style="background:#4ade80"></span>正常经营</span>
+      <span style="opacity:.7">扫码查看摊点信息</span>
+    </div>
+  </div>
+
+  <div class="section-tabs">
+    <div class="section-tab active" data-panel="info">基础信息</div>
+    <div class="section-tab" data-panel="cert">证照信息</div>
+    <div class="section-tab" data-panel="check">监督反馈</div>
+    <div class="section-tab" data-panel="manage">经营信息</div>
+  </div>
+
+  <!-- 基础信息 -->
+  <div id="panel-info" class="panel active">
+    <div class="card">
+      <div class="info-row"><span class="info-label">经营人</span><span class="info-value">朱**</span></div>
+      <div class="info-row"><span class="info-label">联系电话</span><span class="info-value" style="color:var(--primary)">131****7180</span></div>
+      <div class="info-row"><span class="info-label">经营项目</span><span class="info-value">老鹅熟食销售</span></div>
+      <div class="info-row"><span class="info-label">经营时限</span><span class="info-value">10:30-13:30<br>16:30-19:30</span></div>
+      <div class="info-row"><span class="info-label">经营地点</span><span class="info-value">扬州市景区平山乡瘦西湖路与隋炀西路交叉口</span></div>
+      <div class="info-row"><span class="info-label">经营工具</span><span class="info-value">电动三轮车</span></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:600;font-size:14px">相关证件</span>
+        <span style="font-size:12px;color:#9ca3af">共 1 项</span>
+      </div>
+      <div class="cert-card" style="margin:0;cursor:pointer" onclick="openFullModal('cert-detail')">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div><div style="font-size:15px;font-weight:600">鹅码通</div><div style="font-size:12px;opacity:.7;margin-top:3px">证号 ZD000169</div></div>
+          <span style="background:#FFD700;color:#1a5632;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">有效</span>
+        </div>
+        <div style="margin-top:10px;font-size:13px;opacity:.9">临时摊点设置证</div>
+        <div style="margin-top:3px;font-size:12px;opacity:.65">有效期至 <b>2026年12月31日</b></div>
+        <div class="cert-seal">鹅码通<br>电子证照</div>
+      </div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="openFullModal('notice')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">市容环卫责任告知书</div><div style="font-size:12px;color:var(--gray)">告知书编号 GZ000169</div></div>
+        <span style="color:#d1d5db;font-size:18px">›</span>
+      </div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="openFullModal('area')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:18px">📍</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">市容环卫责任区</div><div style="font-size:12px;color:var(--gray)">面积 6㎡ · 平山乡</div></div>
+        <span style="color:#d1d5db;font-size:18px">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 证照信息 -->
+  <div id="panel-cert" class="panel">
+    <div class="card">
+      <div style="font-weight:600;font-size:15px;margin-bottom:12px">电子证照</div>
+      <div class="cert-card" style="margin:0;cursor:pointer" onclick="openFullModal('cert-detail')">
+        <div style="text-align:center;font-size:11px;letter-spacing:2px;opacity:.5;margin-bottom:6px">鹅码通 · 电子证照查验平台</div>
+        <div style="border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px;margin:10px 0">
+          <div style="text-align:center;font-size:16px;font-weight:700;margin-bottom:8px">临时摊点设置证</div>
+          <div style="font-size:12px;line-height:2;opacity:.85">
+            <div>证　号：ZD000169</div>
+            <div>点位名称：扬州老鹅</div>
+            <div>经营人：朱**</div>
+            <div>经营地点：扬州市景区平山乡瘦西湖路与隋炀西路交叉口</div>
+            <div>经营项目：老鹅熟食销售</div>
+            <div>有效期至：<b style="color:#FFD700">2026年12月31日</b></div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:10px;opacity:.4;margin-top:6px">鹅码通 · 电子证照查验平台</div>
+        <div class="cert-seal">鹅码通<br>电子证照</div>
+      </div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="openFullModal('notice')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">市容环卫责任告知书</div><div style="font-size:12px;color:var(--gray)">告知书编号 GZ000169</div></div>
+        <span style="color:#d1d5db;font-size:18px">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 监督反馈 -->
+  <div id="panel-check" class="panel">
+    <div class="card">
+      <div style="font-weight:600;font-size:15px;margin-bottom:12px">信用档案</div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;background:var(--green-bg);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--green)">正常</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px">最近检查</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:1px">2026-06-26</div>
+        </div>
+        <div style="flex:1;background:var(--gray-bg);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:700">2</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px">累计检查</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:1px">次</div>
+        </div>
+        <div style="flex:1;background:#fffbeb;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:var(--yellow)">4.5</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px">平均评分</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:1px">分</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600;font-size:15px;margin-bottom:12px">监督反馈</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="btn btn-outline" onclick="openFullModal('query-progress')">🔍 查询进度</button>
+        <button class="btn btn-primary" onclick="openFullModal('submit-feedback')">📝 提交反馈</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 经营信息 -->
+  <div id="panel-manage" class="panel">
+    <div class="card">
+      <div style="font-weight:600;font-size:15px;margin-bottom:8px">经营信息</div>
+      <div class="info-row"><span class="info-label">经营人</span><span class="info-value">朱**</span></div>
+      <div class="info-row"><span class="info-label">经营项目</span><span class="info-value">老鹅熟食销售</span></div>
+      <div class="info-row"><span class="info-label">经营时限</span><span class="info-value">10:30-13:30 16:30-19:30</span></div>
+      <div class="info-row"><span class="info-label">经营地点</span><span class="info-value">扬州市景区平山乡瘦西湖路与隋炀西路交叉口</span></div>
+      <div class="info-row"><span class="info-label">经营工具</span><span class="info-value">电动三轮车</span></div>
+      <div class="info-row"><span class="info-label">所属辖区</span><span class="info-value">平山乡</span></div>
+      <div class="info-row"><span class="info-label">经营状态</span><span class="info-value"><span class="tag tag-green">正常经营</span></span></div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="openFullModal('area')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:18px">📍</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">市容环卫责任区</div><div style="font-size:12px;color:var(--gray)">面积 6㎡ · 平山乡</div></div>
+        <span style="color:#d1d5db;font-size:18px">›</span>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;padding:20px 0;font-size:11px;color:#9ca3af">鹅码通 · 老鹅摊点信息公开查询</div>
+</div>
+
+<!-- ============================================ -->
+<!-- 页面2: 老鹅地图 -->
+<!-- ============================================ -->
+<div id="page-map" class="page">
+  <div class="search-bar">
+    <input type="text" class="search-input" placeholder="搜索摊点、经营项目、区域..." id="map-search">
+    <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:15px">🔍</div>
+  </div>
+  <div class="map-nav-btns">
+    <div class="map-nav-btn active" data-type="goose">🪿 老鹅摊点</div>
+    <div class="map-nav-btn" data-type="convenient">🏪 便民点位</div>
+    <div class="map-nav-btn" data-type="bike">🚲 共享单车</div>
+    <div class="map-nav-btn" data-type="parking">🅿️ 停车位</div>
+    <div class="map-nav-btn" data-type="toilet">🚻 公厕</div>
+    <div class="map-nav-btn" data-type="station">🏛️ 城管驿站</div>
+  </div>
+  <div class="map-container">
+    <div style="width:100%;height:40%;display:flex;align-items:center;justify-content:center;color:#b0b0b0;font-size:13px">地图区域 · 模拟展示</div>
+    <div class="map-pin" style="top:28%;left:38%" onclick="openFullModal('stall-detail-map',{id:1})">
+      <div style="background:var(--primary);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">🪿 扬州老鹅</div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--primary);margin-left:18px"></div>
+    </div>
+    <div class="map-pin" style="top:20%;left:58%" onclick="openFullModal('stall-detail-map',{id:2})">
+      <div style="background:var(--primary);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">🪿 仇氏老鹅</div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--primary);margin-left:18px"></div>
+    </div>
+    <div class="map-pin" style="top:45%;left:32%" onclick="openFullModal('stall-detail-map',{id:3})">
+      <div style="background:var(--primary);color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">🪿 黄珏老鹅</div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--primary);margin-left:18px"></div>
+    </div>
+    <div class="map-overlay">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:600;font-size:15px">附近摊点</span>
+        <span style="font-size:12px;color:#9ca3af">4 个摊点</span>
+      </div>
+      <div id="stall-list">
+        <div class="stall-list-item" onclick="openFullModal('stall-detail-map',{id:1})">
+          <div class="stall-icon">🪿</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500">扬州老鹅</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:1px">老鹅熟食销售 · 320m</div>
+            <div style="margin-top:3px;font-size:12px;color:#FFD700">★★★★★ <span style="color:var(--green);font-size:11px">正常经营</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在为您导航...')">🧭</div>
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在拨打摊主电话...')">📞</div>
+          </div>
+        </div>
+        <div class="stall-list-item" onclick="openFullModal('stall-detail-map',{id:2})">
+          <div class="stall-icon">🪿</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500">仇氏老鹅</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:1px">老鹅熟食销售 · 580m</div>
+            <div style="margin-top:3px;font-size:12px;color:#FFD700">★★★★☆ <span style="color:var(--green);font-size:11px">正常经营</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在为您导航...')">🧭</div>
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在拨打摊主电话...')">📞</div>
+          </div>
+        </div>
+        <div class="stall-list-item" onclick="openFullModal('stall-detail-map',{id:3})">
+          <div class="stall-icon">🪿</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500">黄珏老鹅</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:1px">老鹅熟食销售 · 850m</div>
+            <div style="margin-top:3px;font-size:12px;color:#FFD700">★★★★☆ <span style="color:var(--green);font-size:11px">正常经营</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在为您导航...')">🧭</div>
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px" onclick="event.stopPropagation();toast('正在拨打摊主电话...')">📞</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 页面3: 摊主管理 -->
+<!-- ============================================ -->
+<div id="page-vendor" class="page">
+  <div class="vendor-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:24px">🪿</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:600">朱** 的摊位</div>
+        <div style="font-size:13px;opacity:.8;margin-top:2px">扬州老鹅 · ZD000169</div>
+      </div>
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px" onclick="openFullModal('vendor-notify')">🔔</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:1px" onclick="doLogout('vendor')">退出</div>
+    </div>
+  </div>
+
+  <div class="vendor-stats">
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">正常</div><div class="stat-label">经营状态</div></div>
+    <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">检查次数</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--yellow)">1</div><div class="stat-label">待处理</div></div>
+  </div>
+
+  <div class="vendor-menu">
+    <div class="menu-item menu-badge" onclick="openFullModal('vendor-info')">
+      <div class="menu-icon" style="background:#fef3c7">📝</div>
+      <div class="menu-text">信息修改</div>
+    </div>
+    <div class="menu-item menu-badge" onclick="openFullModal('vendor-cert')">
+      <div class="menu-icon" style="background:#dbeafe">📄</div>
+      <div class="menu-text">证照管理</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-check')">
+      <div class="menu-icon" style="background:#d1fae5">✅</div>
+      <div class="menu-text">检查记录</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-complaint')">
+      <div class="menu-icon" style="background:#fce7f3">💬</div>
+      <div class="menu-text">投诉反馈</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-remind')">
+      <div class="menu-icon" style="background:#fee2e2">⏰</div>
+      <div class="menu-text">到期提醒</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-scan-stats')">
+      <div class="menu-icon" style="background:#e0e7ff">📊</div>
+      <div class="menu-text">扫码统计</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-notify')">
+      <div class="menu-icon" style="background:#f3e8ff">🔔</div>
+      <div class="menu-text">消息通知</div>
+    </div>
+    <div class="menu-item" onclick="openFullModal('vendor-settings')">
+      <div class="menu-icon" style="background:#f1f5f9">⚙️</div>
+      <div class="menu-text">设置</div>
+    </div>
+  </div>
+
+  <!-- 证照到期提醒 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:15px">⏰</span>
+      <span style="font-weight:600;font-size:14px">证照到期提醒</span>
+    </div>
+    <div style="background:var(--yellow-bg);border-radius:8px;padding:10px 12px;font-size:13px;color:#92400e;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="openFullModal('vendor-remind')">
+      <span>健康证将于 <b>30天后</b> 到期</span>
+      <span style="color:#d1d5db">›</span>
+    </div>
+    <div style="background:var(--green-bg);border-radius:8px;padding:10px 12px;font-size:13px;color:#166534;margin-top:6px;display:flex;justify-content:space-between;align-items:center">
+      <span>临时摊点设置证有效期至 2026.12.31</span>
+      <span class="tag tag-green">有效</span>
+    </div>
+  </div>
+
+  <!-- 最近动态 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-weight:600;font-size:14px">最近动态</span>
+      <span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-notify')">查看全部</span>
+    </div>
+    <div style="font-size:13px;color:var(--gray);line-height:2">
+      <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></span>06-26 检查结果：<span style="color:var(--green)">正常</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--yellow);flex-shrink:0"></span>06-20 信息变更审核：<span style="color:var(--green)">已通过</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 页面4: 执法检查 -->
+<!-- ============================================ -->
+<div id="page-law" class="page">
+  <div class="law-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:24px">👮</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:600">执法人员工作台</div>
+        <div style="font-size:13px;opacity:.8;margin-top:2px">张执法 · 平山乡辖区</div>
+      </div>
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:1px" onclick="doLogout('law')">退出</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px">
+    <div class="law-card" onclick="openFullModal('law-inspect')">
+      <div style="font-size:28px;margin-bottom:6px">📋</div>
+      <div style="font-size:14px;font-weight:600">现场检查</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:3px">按辖区开展现场检查<br>结果同步后台</div>
+    </div>
+    <div class="law-card" onclick="openFullModal('law-complaint')">
+      <div style="font-size:28px;margin-bottom:6px">💬</div>
+      <div style="font-size:14px;font-weight:600">投诉处理</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:3px">查看待处理投诉<br>现场核实处理</div>
+    </div>
+    <div class="law-card" onclick="openFullModal('law-scan')">
+      <div style="font-size:28px;margin-bottom:6px">📷</div>
+      <div style="font-size:14px;font-weight:600">扫码查摊</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:3px">扫码查看摊点<br>详细档案信息</div>
+    </div>
+    <div class="law-card" onclick="toast('功能开发中')">
+      <div style="font-size:28px;margin-bottom:6px">📊</div>
+      <div style="font-size:14px;font-weight:600">检查统计</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:3px">本辖区检查数据<br>月度汇总</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:600;font-size:14px;margin-bottom:10px">待办事项</div>
+    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="openFullModal('law-complaint')">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:10px;flex-shrink:0"></div>
+      <div style="flex:1;font-size:13px">3条投诉待核实</div>
+      <span class="tag tag-red">紧急</span>
+    </div>
+    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="openFullModal('law-inspect')">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--yellow);margin-right:10px;flex-shrink:0"></div>
+      <div style="flex:1;font-size:13px">2个摊点证照即将到期</div>
+      <span class="tag tag-yellow">提醒</span>
+    </div>
+    <div style="display:flex;align-items:center;padding:10px 0">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:10px;flex-shrink:0"></div>
+      <div style="flex:1;font-size:13px">今日已检查 5 个摊点</div>
+      <span class="tag tag-green">完成</span>
+    </div>
+  </div>
+</div>
+
+<!-- 底部Tab -->
+<div class="tab-bar">
+  <div class="tab-item active" data-page="scan"><div class="icon">📱</div><div class="label">扫码公示</div></div>
+  <div class="tab-item" data-page="map"><div class="icon">🗺️</div><div class="label">老鹅地图</div></div>
+  <div class="tab-item" data-page="vendor"><div class="icon">🪿</div><div class="label">摊主管理</div></div>
+  <div class="tab-item" data-page="law"><div class="icon">👮</div><div class="label">执法检查</div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- 登录页：摊主 -->
+<!-- ============================================ -->
+<div class="login-page" id="login-vendor">
+  <div class="login-close" onclick="closeLogin('vendor')">✕</div>
+  <div class="login-header">
+    <div class="login-logo" style="background:linear-gradient(135deg,#1a5632,#2d8a56);color:#fff">🪿</div>
+    <div class="login-title">摊主登录</div>
+    <div class="login-subtitle">登录后可管理摊点信息、证照和查看检查记录</div>
+  </div>
+  <div class="login-body">
+    <div class="login-tab-bar">
+      <div class="login-tab active" onclick="switchLoginTab(this,'vendor-sms')">验证码登录</div>
+      <div class="login-tab" onclick="switchLoginTab(this,'vendor-pwd')">密码登录</div>
+    </div>
+    <!-- 验证码登录 -->
+    <div class="login-form active" id="vendor-sms">
+      <div class="form-group">
+        <label class="form-label">手机号 <span class="req">*</span></label>
+        <input type="tel" class="form-input" placeholder="请输入手机号" id="vendor-sms-phone" maxlength="11">
+      </div>
+      <div class="form-group">
+        <label class="form-label">验证码 <span class="req">*</span></label>
+        <div class="sms-row">
+          <input type="text" class="form-input" placeholder="请输入验证码" id="vendor-sms-code" maxlength="6">
+          <button class="sms-btn" id="vendor-send-sms" onclick="sendSms('vendor')">获取验证码</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="background:#1a5632" onclick="doLogin('vendor')">登录</button>
+    </div>
+    <!-- 密码登录 -->
+    <div class="login-form" id="vendor-pwd">
+      <div class="form-group">
+        <label class="form-label">手机号 <span class="req">*</span></label>
+        <input type="tel" class="form-input" placeholder="请输入手机号" id="vendor-pwd-phone" maxlength="11">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码 <span class="req">*</span></label>
+        <input type="password" class="form-input" placeholder="请输入密码" id="vendor-pwd-pass">
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:-10px;margin-bottom:16px">
+        <span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="toast('请联系管理员重置密码')">忘记密码？</span>
+      </div>
+      <button class="btn btn-primary" style="background:#1a5632" onclick="doLogin('vendor')">登录</button>
+    </div>
+    <div class="login-protocol">
+      登录即代表您同意 <a href="javascript:void(0)" onclick="toast('用户协议')">《用户协议》</a> 和 <a href="javascript:void(0)" onclick="toast('隐私政策')">《隐私政策》</a>
+    </div>
+  </div>
+  <div class="login-footer">鹅码通 · 摊主自助管理端</div>
+</div>
+
+<!-- ============================================ -->
+<!-- 登录页：执法人员 -->
+<!-- ============================================ -->
+<div class="login-page" id="login-law">
+  <div class="login-close" onclick="closeLogin('law')">✕</div>
+  <div class="login-header">
+    <div class="login-logo" style="background:linear-gradient(135deg,#1e3a5f,#3b6ea5);color:#fff">👮</div>
+    <div class="login-title">执法人员登录</div>
+    <div class="login-subtitle">仅限已认证的执法人员登录使用</div>
+  </div>
+  <div class="login-body">
+    <div class="form-group">
+      <label class="form-label">工号 <span class="req">*</span></label>
+      <input type="text" class="form-input" placeholder="请输入执法工号" id="law-id">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码 <span class="req">*</span></label>
+      <input type="password" class="form-input" placeholder="请输入密码" id="law-pass">
+    </div>
+    <div class="form-group">
+      <label class="form-label">所属辖区 <span class="req">*</span></label>
+      <select class="form-input" id="law-district">
+        <option value="">请选择所属辖区</option>
+        <option value="pingshan">平山乡</option>
+        <option value="chengbei">城北街道</option>
+        <option value="meiling">梅岭街道</option>
+        <option value="shouxihu">瘦西湖街道</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="background:#1e3a5f" onclick="doLogin('law')">登录</button>
+    <div class="login-protocol" style="margin-top:16px">
+      <div style="text-align:center;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--gray)">还没有账号？</span>
+        <a href="javascript:void(0)" style="font-size:12px;color:var(--primary)" onclick="toast('请联系管理员开通执法账号')">申请认证</a>
+      </div>
+      登录即代表您同意 <a href="javascript:void(0)" onclick="toast('用户协议')">《用户协议》</a> 和 <a href="javascript:void(0)" onclick="toast('隐私政策')">《隐私政策》</a>
+    </div>
+  </div>
+  <div class="login-footer">鹅码通 · 执法人员工作台</div>
+</div>
+
+<!-- ============================================ -->
+<!-- 全屏Modal：证照详情 -->
+<!-- ============================================ -->
+<div class="full-modal" id="modal-cert-detail">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('cert-detail')">←</div>
+    <div class="title">电子证照详情</div>
+    <div class="action" onclick="toast('已复制证照信息')">复制</div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="cert-card">
+        <div style="text-align:center;font-size:11px;letter-spacing:2px;opacity:.5;margin-bottom:8px">鹅码通 · 电子证照查验平台</div>
+        <div style="border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;margin:10px 0">
+          <div style="text-align:center;font-size:17px;font-weight:700;margin-bottom:10px">临时摊点设置证</div>
+          <div style="font-size:13px;line-height:2.2;opacity:.85">
+            <div>证　号：ZD000169</div>
+            <div>点位名称：扬州老鹅</div>
+            <div>经营人：朱**</div>
+            <div>经营地点：扬州市景区平山乡瘦西湖路与隋炀西路交叉口</div>
+            <div>经营项目：老鹅熟食销售</div>
+            <div>有效期至：<b style="color:#FFD700">2026年12月31日</b></div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:10px;opacity:.4;margin-top:8px">鹅码通 · 电子证照查验平台</div>
+        <div class="cert-seal">鹅码通<br>电子证照</div>
+      </div>
+      <div class="card" style="margin:16px 0">
+        <div class="info-row"><span class="info-label">证照类型</span><span class="info-value">临时摊点设置证</span></div>
+        <div class="info-row"><span class="info-label">证号</span><span class="info-value" style="font-family:monospace">ZD000169</span></div>
+        <div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="tag tag-green">有效</span></span></div>
+        <div class="info-row"><span class="info-label">有效期起</span><span class="info-value">2025年1月1日</span></div>
+        <div class="info-row"><span class="info-label">有效期止</span><span class="info-value" style="color:var(--green);font-weight:500">2026年12月31日</span></div>
+      </div>
+      <div class="card" style="margin:0 0 16px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px">证照影像</div>
+        <div style="background:#f3f4f6;border-radius:8px;height:180px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;cursor:pointer" onclick="toast('查看证照原图')">点击查看原图</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 全屏Modal：告知书 -->
+<div class="full-modal" id="modal-notice">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('notice')">←</div>
+    <div class="title">市容环卫责任告知书</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="card" style="margin:0">
+        <div style="text-align:center;font-size:15px;font-weight:700;margin-bottom:16px">城市市容和环境卫生管理责任告知书</div>
+        <div class="info-row"><span class="info-label">告知书编号</span><span class="info-value">GZ000169</span></div>
+        <div class="info-row"><span class="info-label">责任人</span><span class="info-value">扬州老鹅 / 朱**</span></div>
+        <div class="info-row"><span class="info-label">管理单位</span><span class="info-value">扬州市平山乡人民政府<br>扬州市景区综合行政执法局</span></div>
+        <div class="info-row"><span class="info-label">签订时间</span><span class="info-value">2024年2月23日</span></div>
+        <div class="info-row"><span class="info-label">举报电话</span><span class="info-value" style="color:var(--primary)">12345、12319</span></div>
+        <div style="margin-top:14px;font-size:13px;line-height:1.9;color:#374151">
+          <div style="font-weight:600;margin-bottom:6px">责任区域</div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:10px">临街建筑物、构筑物或其他设施、场地及周围地面和设施。横向为建(构)筑物沿路的总长，相邻单位用空当的二分之一间距为界。</div>
+          <div style="font-weight:600;margin-bottom:6px">责任人履行责任要求</div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:4px"><b style="color:var(--primary)">（一）</b>保持地面清洁，无暴露垃圾、废弃物，按规定设置环境卫生设施。</div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:4px"><b style="color:var(--primary)">（二）</b>保持立面清洁，建(构)筑物外立面整洁完好，无乱涂乱贴现象。</div>
+          <div style="font-size:12px;color:var(--gray);margin-bottom:10px"><b style="color:var(--primary)">（三）</b>保持设施有序，无占道经营、无店外设摊、无乱堆乱放。</div>
+          <div style="font-weight:600;margin-bottom:6px">责任人权利与义务</div>
+          <div style="font-size:12px;color:var(--gray)">不履行责任的，处以100元以上1000元以下罚款。对损害市容环卫的行为有权予以劝阻、制止或提请查处。</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:#9ca3af;padding:12px 0">鹅码通 · 电子告知书查验</div>
+    </div>
+  </div>
+</div>
+
+<!-- 全屏Modal：责任区 -->
+<div class="full-modal" id="modal-area">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('area')">←</div>
+    <div class="title">市容环卫责任区</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="card" style="margin:0">
+        <div style="text-align:center;font-weight:600;font-size:15px;margin-bottom:12px">责任区信息</div>
+        <div class="info-row"><span class="info-label">责任区名称</span><span class="info-value">扬州老鹅</span></div>
+        <div class="info-row"><span class="info-label">责任人</span><span class="info-value">朱**</span></div>
+        <div class="info-row"><span class="info-label">地址</span><span class="info-value">扬州市景区平山乡瘦西湖路与隋炀西路交叉口</span></div>
+        <div class="info-row"><span class="info-label">面积</span><span class="info-value">6 ㎡</span></div>
+        <div class="info-row"><span class="info-label">辖区</span><span class="info-value">平山乡</span></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px">责任区范围</div>
+        <div style="background:#f3f4f6;border-radius:8px;height:160px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px">责任区范围示意图</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 全屏Modal：查询进度 -->
+<div class="full-modal" id="modal-query-progress">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('query-progress')">←</div>
+    <div class="title">查询进度</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="form-group">
+        <label class="form-label">查询码 <span class="req">*</span></label>
+        <input type="text" class="form-input" placeholder="请输入查询码" id="query-code-input">
+      </div>
+      <button class="btn btn-primary" onclick="doQueryFeedback()">查询</button>
+      <div id="query-result-area" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 全屏Modal：提交反馈 -->
+<div class="full-modal" id="modal-submit-feedback">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('submit-feedback')">←</div>
+    <div class="title">提交反馈</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="form-group">
+        <label class="form-label">反馈类型 <span class="req">*</span></label>
+        <div class="tag-group" id="fb-type-group">
+          <button class="tag-btn selected" onclick="selectTag(this)">我要反馈</button>
+          <button class="tag-btn" onclick="selectTag(this)">投诉举报</button>
+          <button class="tag-btn" onclick="selectTag(this)">信息有误</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">问题分类 <span class="req">*</span></label>
+        <div class="tag-group" id="fb-cat-group">
+          <button class="tag-btn" onclick="selectTag(this)">摊点信息不符</button>
+          <button class="tag-btn" onclick="selectTag(this)">卫生问题</button>
+          <button class="tag-btn" onclick="selectTag(this)">占道经营</button>
+          <button class="tag-btn" onclick="selectTag(this)">证件问题</button>
+          <button class="tag-btn" onclick="selectTag(this)">其他</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">补充说明 <span style="font-size:11px;color:#9ca3af">（选填）</span></label>
+        <textarea class="form-input" placeholder="请描述具体问题..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">现场图片 <span style="font-size:11px;color:#9ca3af">（最多3张，选填）</span></label>
+        <div class="upload-grid">
+          <div class="upload-item" onclick="toast('选择图片')">+</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">联系方式 <span style="font-size:11px;color:#9ca3af">（选填）</span></label>
+        <input type="tel" class="form-input" placeholder="手机号码">
+      </div>
+      <button class="btn btn-primary" onclick="submitFeedback()">提交反馈</button>
+    </div>
+  </div>
+</div>
+
+<!-- 全屏Modal：地图摊点详情 -->
+<div class="full-modal" id="modal-stall-detail-map">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('stall-detail-map')">←</div>
+    <div class="title" id="map-stall-title">扬州老鹅</div>
+    <div class="action">♡</div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px" id="map-stall-body"></div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 摊主管理 - 信息修改 -->
+<!-- ============================================ -->
+<div class="full-modal" id="modal-vendor-info">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-info')">←</div>
+    <div class="title">信息修改</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="audit-bar audit-pending" id="vendor-info-audit" style="display:none">
+        ⏳ 您的信息变更申请正在审核中，审核通过后将自动生效
+      </div>
+      <div class="audit-bar audit-approved" id="vendor-info-audit-passed" style="display:none">
+        ✅ 您的信息变更申请已审核通过
+      </div>
+      <div style="font-size:12px;color:var(--yellow);background:var(--yellow-bg);border-radius:8px;padding:8px 12px;margin-bottom:16px">
+        提示：修改提交后需后台审核，审核通过后才会同步到公示页面
+      </div>
+      <div class="form-group">
+        <label class="form-label">经营人 <span class="req">*</span></label>
+        <input type="text" class="form-input" value="朱**" id="v-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">联系电话 <span class="req">*</span></label>
+        <input type="tel" class="form-input" value="131****7180" id="v-phone">
+      </div>
+      <div class="form-group">
+        <label class="form-label">经营项目 <span class="req">*</span></label>
+        <input type="text" class="form-input" value="老鹅熟食销售" id="v-item">
+      </div>
+      <div class="form-group">
+        <label class="form-label">经营时限</label>
+        <input type="text" class="form-input" value="10:30-13:30 16:30-19:30" id="v-hours">
+      </div>
+      <div class="form-group">
+        <label class="form-label">经营地点 <span class="req">*</span></label>
+        <input type="text" class="form-input" value="扬州市景区平山乡瘦西湖路与隋炀西路交叉口" id="v-addr">
+      </div>
+      <div class="form-group">
+        <label class="form-label">经营工具</label>
+        <input type="text" class="form-input" value="电动三轮车" id="v-tool">
+      </div>
+      <button class="btn btn-primary" onclick="submitVendorInfo()">提交修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 证照管理 -->
+<div class="full-modal" id="modal-vendor-cert">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-cert')">←</div>
+    <div class="title">证照管理</div>
+    <div class="action" onclick="openFullModal('vendor-cert-upload')">+ 上传</div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="audit-bar audit-pending" id="cert-audit-bar" style="display:none">
+        ⏳ 您有1条证照更新申请正在审核中
+      </div>
+
+      <div class="card" style="margin:0 0 12px">
+        <div class="cert-item">
+          <div class="cert-item-icon" style="background:#dbeafe">🪪</div>
+          <div class="cert-item-info">
+            <div class="cert-item-name">临时摊点设置证</div>
+            <div class="cert-item-desc">ZD000169 · 有效期至 2026.12.31</div>
+          </div>
+          <div class="cert-item-action"><span class="tag tag-green">有效</span></div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-item-icon" style="background:#fef3c7">🏥</div>
+          <div class="cert-item-info">
+            <div class="cert-item-name">健康证 <span class="tag tag-yellow" style="font-size:10px;margin-left:4px">即将过期</span></div>
+            <div class="cert-item-desc">JK000169 · 有效期至 2026.08.06</div>
+          </div>
+          <div class="cert-item-action"><button class="btn-sm btn-outline" style="font-size:12px;padding:4px 10px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'health'})">更新</button></div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-item-icon" style="background:#e0e7ff">📋</div>
+          <div class="cert-item-info">
+            <div class="cert-item-name">营业执照</div>
+            <div class="cert-item-desc" style="color:#9ca3af">暂未上传</div>
+          </div>
+          <div class="cert-item-action"><button class="btn-sm btn-outline" style="font-size:12px;padding:4px 10px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'business'})">上传</button></div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-item-icon" style="background:#fce7f3">🍽️</div>
+          <div class="cert-item-info">
+            <div class="cert-item-name">食品经营许可证</div>
+            <div class="cert-item-desc" style="color:#9ca3af">暂未上传</div>
+          </div>
+          <div class="cert-item-action"><button class="btn-sm btn-outline" style="font-size:12px;padding:4px 10px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'food'})">上传</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 证照上传/更新 -->
+<div class="full-modal" id="modal-vendor-cert-upload">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-cert-upload')">←</div>
+    <div class="title" id="cert-upload-title">上传证照</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="font-size:12px;color:var(--yellow);background:var(--yellow-bg);border-radius:8px;padding:8px 12px;margin-bottom:16px">
+        上传/更新的证照需后台审核通过后方可生效
+      </div>
+      <div class="form-group">
+        <label class="form-label">证照类型 <span class="req">*</span></label>
+        <select class="form-input" id="cert-type-select">
+          <option value="">请选择证照类型</option>
+          <option value="health">健康证</option>
+          <option value="business">营业执照</option>
+          <option value="food">食品经营许可证</option>
+          <option value="stall">临时摊点设置证</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">证号 <span class="req">*</span></label>
+        <input type="text" class="form-input" placeholder="如：ZD000169">
+      </div>
+      <div class="form-group">
+        <label class="form-label">有效期起始</label>
+        <input type="date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">有效期截止 <span class="req">*</span></label>
+        <input type="date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">证照影像 <span class="req">*</span></label>
+        <div class="upload-grid">
+          <div class="upload-item" onclick="toast('选择图片')">+</div>
+        </div>
+        <div class="form-hint">支持 jpg/png 格式，不超过5MB</div>
+      </div>
+      <button class="btn btn-primary" onclick="submitCertUpload()">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 检查记录 -->
+<div class="full-modal" id="modal-vendor-check">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-check')">←</div>
+    <div class="title">检查记录</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span style="font-size:13px;color:var(--gray)">共 2 次检查</span>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px"><span style="color:var(--gray)">平均评分</span><span style="font-weight:700;color:var(--primary)">4.5</span></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot green">✓</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px;font-weight:500">2026-06-26 检查</span>
+            <span class="tag tag-green">正常</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-top:4px">检查人：张执法 · 平山乡</div>
+          <div style="margin-top:6px;display:flex;gap:8px">
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">卫生 5</span>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">规范 4</span>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">服务 4</span>
+            <span style="font-size:12px;background:var(--blue-bg);color:var(--blue);padding:2px 6px;border-radius:4px;font-weight:600">综合 4.3</span>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot green">✓</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:14px;font-weight:500">2026-05-15 检查</span>
+            <span class="tag tag-green">正常</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-top:4px">检查人：李执法 · 平山乡</div>
+          <div style="margin-top:6px;display:flex;gap:8px">
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">卫生 4</span>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">规范 5</span>
+            <span style="font-size:12px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px">服务 5</span>
+            <span style="font-size:12px;background:var(--blue-bg);color:var(--blue);padding:2px 6px;border-radius:4px;font-weight:600">综合 4.7</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 投诉反馈 -->
+<div class="full-modal" id="modal-vendor-complaint">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-complaint')">←</div>
+    <div class="title">投诉反馈</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSubTab(this,'v-complaint-list')">投诉记录</div>
+        <div class="sub-tab" onclick="switchSubTab(this,'v-complaint-stats')">反馈统计</div>
+      </div>
+      <div id="v-complaint-list">
+        <div class="card" style="margin:0 0 10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260705012</span>
+            <span class="tag tag-green">已处理</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>类型：信息有误</div>
+            <div>分类：摊点信息不符</div>
+            <div>时间：2026-07-05 10:20</div>
+          </div>
+          <div style="margin-top:8px;background:var(--green-bg);border-radius:6px;padding:8px 10px;font-size:12px;color:#166534">
+            <b>回复：</b>核实后已更正经营时限信息，感谢您的反馈。
+          </div>
+        </div>
+        <div class="card" style="margin:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260620008</span>
+            <span class="tag tag-green">已处理</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>类型：投诉举报</div>
+            <div>分类：卫生问题</div>
+            <div>时间：2026-06-20 15:30</div>
+          </div>
+          <div style="margin-top:8px;background:var(--green-bg);border-radius:6px;padding:8px 10px;font-size:12px;color:#166534">
+            <b>回复：</b>已整改完毕，后续将加强卫生管理。
+          </div>
+        </div>
+      </div>
+      <div id="v-complaint-stats" style="display:none">
+        <div class="card" style="margin:0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="text-align:center;padding:14px;background:var(--gray-bg);border-radius:8px">
+              <div style="font-size:22px;font-weight:700">2</div>
+              <div style="font-size:12px;color:var(--gray);margin-top:2px">累计反馈</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--green-bg);border-radius:8px">
+              <div style="font-size:22px;font-weight:700;color:var(--green)">2</div>
+              <div style="font-size:12px;color:var(--gray);margin-top:2px">已处理</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 到期提醒 -->
+<div class="full-modal" id="modal-vendor-remind">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-remind')">←</div>
+    <div class="title">证照到期提醒</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="background:var(--red-bg);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--red)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600;font-size:14px">健康证</div>
+            <div style="font-size:12px;color:var(--red);margin-top:3px">⚠️ 30天后到期 · 2026年8月6日</div>
+          </div>
+          <button class="btn-sm" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'health'})">去更新</button>
+        </div>
+      </div>
+      <div style="background:var(--green-bg);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--green)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600;font-size:14px">临时摊点设置证</div>
+            <div style="font-size:12px;color:var(--green);margin-top:3px">有效期至 2026年12月31日</div>
+          </div>
+          <span class="tag tag-green">有效</span>
+        </div>
+      </div>
+      <div style="background:#f3f4f6;border-radius:10px;padding:14px;border-left:3px solid #d1d5db">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:500;font-size:14px;color:var(--gray)">营业执照</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:3px">暂未上传</div>
+          </div>
+          <button class="btn-sm" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'business'})">去上传</button>
+        </div>
+      </div>
+      <div style="background:#f3f4f6;border-radius:10px;padding:14px;margin-top:10px;border-left:3px solid #d1d5db">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:500;font-size:14px;color:var(--gray)">食品经营许可证</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:3px">暂未上传</div>
+          </div>
+          <button class="btn-sm" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1.5px solid var(--primary);background:#fff;color:var(--primary);cursor:pointer" onclick="openFullModal('vendor-cert-upload',{type:'food'})">去上传</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 扫码统计 -->
+<div class="full-modal" id="modal-vendor-scan-stats">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-scan-stats')">←</div>
+    <div class="title">扫码统计</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="text-align:center;padding:16px;background:var(--blue-bg);border-radius:10px">
+          <div style="font-size:24px;font-weight:700;color:var(--blue)">342</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">本月扫码</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--green-bg);border-radius:10px">
+          <div style="font-size:24px;font-weight:700;color:var(--green)">+14.8%</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">环比增长</div>
+        </div>
+      </div>
+      <div class="card" style="margin:0">
+        <div style="font-weight:600;font-size:14px;margin-bottom:12px">近7天扫码趋势</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;height:120px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:45px"></div><span style="font-size:9px;color:var(--gray)">7/2</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:55px"></div><span style="font-size:9px;color:var(--gray)">7/3</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:38px"></div><span style="font-size:9px;color:var(--gray)">7/4</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:70px"></div><span style="font-size:9px;color:var(--gray)">7/5</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:95px"></div><span style="font-size:9px;color:var(--gray)">7/6</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:80px"></div><span style="font-size:9px;color:var(--gray)">7/7</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="background:linear-gradient(180deg,var(--primary),var(--primary-light));border-radius:3px 3px 0 0;width:100%;height:60px;opacity:.5"></div><span style="font-size:9px;color:var(--gray)">7/8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 消息通知 -->
+<div class="full-modal" id="modal-vendor-notify">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-notify')">←</div>
+    <div class="title">消息通知</div>
+    <div class="action" onclick="toast('已全部标为已读')">全部已读</div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="msg-item" onclick="toast('查看消息详情')">
+        <div class="msg-dot unread"></div>
+        <div class="msg-content">
+          <div class="msg-title">证照到期提醒</div>
+          <div class="msg-desc">您的健康证将于2026年8月6日到期，请及时更新</div>
+        </div>
+        <div class="msg-time">今天</div>
+      </div>
+      <div class="msg-item" onclick="toast('查看消息详情')">
+        <div class="msg-dot unread"></div>
+        <div class="msg-content">
+          <div class="msg-title">信息变更审核通过</div>
+          <div class="msg-desc">您提交的联系电话变更已审核通过</div>
+        </div>
+        <div class="msg-time">06-20</div>
+      </div>
+      <div class="msg-item">
+        <div class="msg-dot read"></div>
+        <div class="msg-content">
+          <div class="msg-title">检查结果通知</div>
+          <div class="msg-desc">2026-06-26检查结果：正常，综合评分4.3分</div>
+        </div>
+        <div class="msg-time">06-26</div>
+      </div>
+      <div class="msg-item">
+        <div class="msg-dot read"></div>
+        <div class="msg-content">
+          <div class="msg-title">投诉处理完成</div>
+          <div class="msg-desc">编号FB20260620008的投诉已处理完毕</div>
+        </div>
+        <div class="msg-time">06-22</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 摊主管理 - 设置 -->
+<div class="full-modal" id="modal-vendor-settings">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('vendor-settings')">←</div>
+    <div class="title">设置</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="card" style="margin:0 0 12px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px">通知设置</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6">
+          <span style="font-size:13px">证照到期提醒</span>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6">
+          <span style="font-size:13px">检查结果通知</span>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6">
+          <span style="font-size:13px">投诉处理通知</span>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+          <span style="font-size:13px">审核结果通知</span>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="card" style="margin:0 0 12px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px">账号与安全</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="toast('修改密码')">
+          <span style="font-size:13px">修改密码</span>
+          <span style="color:#d1d5db">›</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer" onclick="toast('绑定手机')">
+          <span style="font-size:13px">绑定手机</span>
+          <span style="font-size:12px;color:var(--gray)">131****7180</span>
+        </div>
+      </div>
+      <div class="card" style="margin:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="toast('关于鹅码通')">
+          <span style="font-size:13px">关于鹅码通</span>
+          <span style="color:#d1d5db">›</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer" onclick="toast('隐私政策')">
+          <span style="font-size:13px">隐私政策</span>
+          <span style="color:#d1d5db">›</span>
+        </div>
+      </div>
+      <button class="btn" style="background:#fff;color:var(--red);border:1px solid var(--red);margin-top:24px" onclick="toast('已退出登录')">退出登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 执法人员 - 现场检查 -->
+<div class="full-modal" id="modal-law-inspect">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('law-inspect')">←</div>
+    <div class="title">现场检查</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="background:var(--blue-bg);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#1e40af">
+        📍 当前辖区：平山乡 · 今日已检查 5 个摊点
+      </div>
+      <div class="form-group">
+        <label class="form-label">检查摊点 <span class="req">*</span></label>
+        <select class="form-input" id="inspect-stall-select">
+          <option value="">请选择或扫码选择摊点</option>
+          <option value="1">扬州老鹅 · ZD000169</option>
+          <option value="2">仇氏老鹅 · ZD000170</option>
+          <option value="3">黄珏老鹅 · ZD000171</option>
+          <option value="4">李记老鹅 · ZD000172</option>
+        </select>
+        <div class="form-hint">也可以点击右上角扫码按钮扫描老鹅码选择</div>
+      </div>
+      <div style="font-weight:600;font-size:14px;margin-bottom:10px">检查评分</div>
+      <div class="card" style="margin:0 0 16px;padding:10px 14px">
+        <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6">
+          <span style="flex:1;font-size:14px">卫生状况</span>
+          <div class="score-group"><button class="score-btn" onclick="setScore(this)">1</button><button class="score-btn" onclick="setScore(this)">2</button><button class="score-btn" onclick="setScore(this)">3</button><button class="score-btn" onclick="setScore(this)">4</button><button class="score-btn selected" onclick="setScore(this)">5</button></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6">
+          <span style="flex:1;font-size:14px">经营规范</span>
+          <div class="score-group"><button class="score-btn" onclick="setScore(this)">1</button><button class="score-btn" onclick="setScore(this)">2</button><button class="score-btn" onclick="setScore(this)">3</button><button class="score-btn selected" onclick="setScore(this)">4</button><button class="score-btn" onclick="setScore(this)">5</button></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:8px 0">
+          <span style="flex:1;font-size:14px">服务情况</span>
+          <div class="score-group"><button class="score-btn" onclick="setScore(this)">1</button><button class="score-btn" onclick="setScore(this)">2</button><button class="score-btn selected" onclick="setScore(this)">3</button><button class="score-btn" onclick="setScore(this)">4</button><button class="score-btn" onclick="setScore(this)">5</button></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">检查结果 <span class="req">*</span></label>
+        <div class="tag-group">
+          <button class="tag-btn selected" onclick="selectTag(this)">正常</button>
+          <button class="tag-btn" onclick="selectTag(this)">需整改</button>
+          <button class="tag-btn" onclick="selectTag(this)">处罚</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">现场照片 <span style="font-size:11px;color:#9ca3af">（选填，最多3张）</span></label>
+        <div class="upload-grid">
+          <div class="upload-item" onclick="toast('选择图片')">+</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-input" placeholder="输入检查备注..." rows="3"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="submitInspect()">提交检查记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 执法人员 - 投诉处理 -->
+<div class="full-modal" id="modal-law-complaint">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('law-complaint')">←</div>
+    <div class="title">投诉处理</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSubTab(this,'law-complaint-pending')">待处理 <span id="pending-count" style="color:var(--red)">(3)</span></div>
+        <div class="sub-tab" onclick="switchSubTab(this,'law-complaint-done')">已处理</div>
+      </div>
+      <div id="law-complaint-pending">
+        <div class="card" style="margin:0 0 10px;cursor:pointer" onclick="toast('查看投诉详情')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260707001</span>
+            <span class="tag tag-red">待受理</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>鹅当家 · 卫生问题</div>
+            <div>摊位周围卫生状况差，垃圾未及时清理</div>
+            <div style="color:#9ca3af">2026-07-07 09:15</div>
+          </div>
+        </div>
+        <div class="card" style="margin:0 0 10px;cursor:pointer" onclick="toast('查看投诉详情')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260706003</span>
+            <span class="tag tag-yellow">处理中</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>黄珏老鹅 · 占道经营</div>
+            <div>摊位超出划定范围经营，占用人行道</div>
+            <div style="color:#9ca3af">2026-07-06 14:30</div>
+          </div>
+        </div>
+        <div class="card" style="margin:0;cursor:pointer" onclick="toast('查看投诉详情')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260705018</span>
+            <span class="tag tag-red">待受理</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>李记老鹅 · 卫生问题</div>
+            <div>食品未加盖防尘，操作区域不整洁</div>
+            <div style="color:#9ca3af">2026-07-05 16:45</div>
+          </div>
+        </div>
+      </div>
+      <div id="law-complaint-done" style="display:none">
+        <div class="card" style="margin:0;cursor:pointer" onclick="toast('查看投诉详情')">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:500">FB20260705012</span>
+            <span class="tag tag-green">已回复</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);line-height:1.8">
+            <div>仇氏老鹅 · 摊点信息不符</div>
+            <div style="color:#9ca3af">2026-07-05 10:20 · 已于07-06处理</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 执法人员 - 扫码查摊 -->
+<div class="full-modal" id="modal-law-scan">
+  <div class="full-modal-header">
+    <div class="back" onclick="closeFullModal('law-scan')">←</div>
+    <div class="title">扫码查摊</div>
+    <div class="action"></div>
+  </div>
+  <div class="full-modal-body">
+    <div style="padding:16px">
+      <div style="background:#f3f4f6;border-radius:12px;height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--gray);cursor:pointer;margin-bottom:16px" onclick="toast('打开扫码')">
+        <div style="font-size:40px;margin-bottom:8px;opacity:.4">📷</div>
+        <div style="font-size:14px">点击扫描老鹅码</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:4px">或手动输入摊点编号查询</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">手动查询</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" placeholder="输入摊点编号或名称" style="flex:1">
+          <button class="btn btn-primary" style="width:auto;padding:10px 20px;font-size:13px">查询</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 成功弹窗 -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-box">
+    <div style="font-size:44px;margin-bottom:12px">✅</div>
+    <div style="font-size:17px;font-weight:600;margin-bottom:6px" id="success-title">提交成功</div>
+    <div style="font-size:13px;color:var(--gray);margin-bottom:16px" id="success-desc"></div>
+    <div id="success-code-box" style="display:none;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--gray);margin-bottom:6px">您的查询码</div>
+      <div style="background:#f9fafb;border-radius:8px;padding:12px;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--primary)" id="success-code"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button style="flex:1;padding:10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:inherit" onclick="copyCode()">复制查询码</button>
+        <button style="flex:1;padding:10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-family:inherit" onclick="toast('已复制查询链接')">复制查询链接</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('success-overlay').classList.remove('show')">完成</button>
+  </div>
+</div>
+
+<script>
+// === 登录状态 ===
+var loginState = { vendor: false, law: false };
+
+// === Tab切换（含登录拦截）===
+document.querySelectorAll('.tab-item').forEach(tab=>{
+  tab.addEventListener('click',function(){
+    var page = this.dataset.page;
+    // 需要登录的页面
+    if(page === 'vendor' && !loginState.vendor){
+      showLogin('vendor');
+      return;
+    }
+    if(page === 'law' && !loginState.law){
+      showLogin('law');
+      return;
+    }
+    document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('page-'+page).classList.add('active');
+  });
+});
+
+// === 扫码公示区域Tab ===
+document.querySelectorAll('.section-tab').forEach(tab=>{
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.section-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('#page-scan .panel').forEach(p=>p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-'+this.dataset.panel).classList.add('active');
+  });
+});
+
+// === 地图导航按钮 ===
+document.querySelectorAll('.map-nav-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.map-nav-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// === 标签选择 ===
+function selectTag(btn){
+  btn.parentElement.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// === 评分 ===
+function setScore(btn){
+  btn.parentElement.querySelectorAll('.score-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// === 子Tab切换 ===
+function switchSubTab(tab,panelId){
+  tab.parentElement.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  var parent = tab.closest('.full-modal-body');
+  parent.querySelectorAll('[id^="v-complaint-"],[id^="law-complaint-"]').forEach(p=>p.style.display='none');
+  document.getElementById(panelId).style.display='block';
+}
+
+// === Toast ===
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+// === FullModal ===
+var modalStack=[];
+function openFullModal(name,data){
+  var el=document.getElementById('modal-'+name);
+  if(!el)return;
+  el.classList.add('show');
+  modalStack.push(name);
+  // 特殊处理
+  if(name==='stall-detail-map'&&data){
+    showMapStallDetail(data.id);
+  }
+  if(name==='vendor-cert-upload'&&data&&data.type){
+    var typeMap={health:'健康证',business:'营业执照',food:'食品经营许可证',stall:'临时摊点设置证'};
+    document.getElementById('cert-upload-title').textContent='上传'+(typeMap[data.type]||'证照');
+    document.getElementById('cert-type-select').value=data.type;
+  }
+}
+function closeFullModal(name){
+  var el=document.getElementById('modal-'+name);
+  if(!el)return;
+  el.classList.remove('show');
+  modalStack=modalStack.filter(n=>n!==name);
+}
+
+// === 地图摊点详情 ===
+var stallData={
+  1:{name:'扬州老鹅',item:'老鹅熟食销售',addr:'瘦西湖路与隋炀西路交叉口',status:'正常经营',star:'★★★★★',phone:'131****7180',hours:'10:30-13:30 16:30-19:30'},
+  2:{name:'仇氏老鹅',item:'老鹅熟食销售',addr:'扬子江北路与文昌西路交叉口',status:'正常经营',star:'★★★★☆',phone:'138****2345',hours:'10:00-14:00 16:00-20:00'},
+  3:{name:'黄珏老鹅',item:'老鹅熟食销售',addr:'江阳西路与邗江中路交叉口',status:'正常经营',star:'★★★★☆',phone:'159****6789',hours:'11:00-14:00 17:00-20:00'}
+};
+function showMapStallDetail(id){
+  var s=stallData[id];if(!s)return;
+  document.getElementById('map-stall-title').textContent=s.name;
+  document.getElementById('map-stall-body').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:inline-flex;align-items:center;justify-content:center;font-size:28px;color:#fff">🪿</div>
+      <div style="font-size:17px;font-weight:700;margin-top:8px">${s.name}</div>
+      <div style="color:#FFD700;font-size:14px;margin-top:2px">${s.star}</div>
+      <span class="tag tag-green" style="margin-top:6px">${s.status}</span>
+    </div>
+    <div class="card" style="margin:0 0 12px">
+      <div class="info-row"><span class="info-label">经营项目</span><span class="info-value">${s.item}</span></div>
+      <div class="info-row"><span class="info-label">经营地址</span><span class="info-value">${s.addr}</span></div>
+      <div class="info-row"><span class="info-label">经营时限</span><span class="info-value">${s.hours}</span></div>
+      <div class="info-row"><span class="info-label">联系电话</span><span class="info-value" style="color:var(--primary)">${s.phone}</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <button class="btn" style="background:var(--green);color:#fff" onclick="toast('正在为您导航...')">🧭 导航前往</button>
+      <button class="btn" style="background:var(--blue);color:#fff" onclick="toast('正在拨打摊主电话...')">📞 电话联系</button>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" onclick="toast('已收藏')">♡ 收藏</button>
+      <button class="btn btn-outline" onclick="closeFullModal('stall-detail-map');openFullModal('submit-feedback')" style="color:var(--primary);border-color:var(--primary)">📝 监督反馈</button>
+    </div>`;
+}
+
+// === 提交反馈 ===
+function submitFeedback(){
+  closeFullModal('submit-feedback');
+  var code='FB'+Date.now().toString().slice(-10);
+  document.getElementById('success-title').textContent='提交成功';
+  document.getElementById('success-desc').textContent='请保存查询码，处理完成后可查看回复说明';
+  document.getElementById('success-code-box').style.display='block';
+  document.getElementById('success-code').textContent=code;
+  document.getElementById('success-overlay').classList.add('show');
+}
+function copyCode(){
+  var code=document.getElementById('success-code').textContent;
+  if(navigator.clipboard)navigator.clipboard.writeText(code);
+  toast('已复制查询码');
+}
+
+// === 查询反馈 ===
+function doQueryFeedback(){
+  var code=document.getElementById('query-code-input').value;
+  var area=document.getElementById('query-result-area');
+  if(!code){area.innerHTML='<div style="color:var(--red);font-size:13px">请输入查询码</div>';return}
+  area.innerHTML=`
+    <div class="card" style="margin:0">
+      <div style="font-weight:600;font-size:14px;margin-bottom:8px">处理进度</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="tag tag-yellow">处理中</span><span style="font-size:12px;color:var(--gray)">2026-07-05 受理</span></div>
+      <div style="font-size:13px;color:#374151">您的反馈已受理，执法人员将于3个工作日内到场核实处理。</div>
+    </div>`;
+}
+
+// === 摊主信息提交 ===
+function submitVendorInfo(){
+  closeFullModal('vendor-info');
+  document.getElementById('success-title').textContent='提交成功';
+  document.getElementById('success-desc').textContent='信息变更已提交，等待后台审核';
+  document.getElementById('success-code-box').style.display='none';
+  document.getElementById('success-overlay').classList.add('show');
+  // 模拟审核中状态
+  setTimeout(()=>{
+    document.getElementById('vendor-info-audit').style.display='flex';
+  },500);
+}
+
+// === 证照上传提交 ===
+function submitCertUpload(){
+  closeFullModal('vendor-cert-upload');
+  document.getElementById('success-title').textContent='提交成功';
+  document.getElementById('success-desc').textContent='证照已提交，等待后台审核';
+  document.getElementById('success-code-box').style.display='none';
+  document.getElementById('success-overlay').classList.add('show');
+  setTimeout(()=>{
+    document.getElementById('cert-audit-bar').style.display='flex';
+  },500);
+}
+
+// === 现场检查提交 ===
+function submitInspect(){
+  closeFullModal('law-inspect');
+  document.getElementById('success-title').textContent='提交成功';
+  document.getElementById('success-desc').textContent='检查记录已同步到后台';
+  document.getElementById('success-code-box').style.display='none';
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+// === 登录页 ===
+function showLogin(type){
+  document.getElementById('login-'+type).classList.add('show');
+}
+function closeLogin(type){
+  document.getElementById('login-'+type).classList.remove('show');
+  // 恢复Tab到扫码公示
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-item[data-page="scan"]').classList.add('active');
+  document.getElementById('page-scan').classList.add('active');
+}
+
+function switchLoginTab(tab,formId){
+  tab.parentElement.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  tab.closest('.login-body').querySelectorAll('.login-form').forEach(f=>f.classList.remove('active'));
+  document.getElementById(formId).classList.add('active');
+}
+
+function sendSms(type){
+  var phoneEl = document.getElementById(type+'-sms-phone');
+  var btn = document.getElementById(type+'-send-sms');
+  if(!phoneEl.value || phoneEl.value.length < 11){
+    toast('请输入正确的手机号');return;
+  }
+  // 倒计时
+  var sec = 60;
+  btn.classList.add('disabled');
+  btn.textContent = sec + 's';
+  var timer = setInterval(function(){
+    sec--;
+    if(sec <= 0){
+      clearInterval(timer);
+      btn.classList.remove('disabled');
+      btn.textContent = '获取验证码';
+    }else{
+      btn.textContent = sec + 's';
+    }
+  },1000);
+  toast('验证码已发送');
+}
+
+function doLogin(type){
+  // 简易验证
+  if(type === 'vendor'){
+    var smsActive = document.getElementById('vendor-sms').classList.contains('active');
+    if(smsActive){
+      var phone = document.getElementById('vendor-sms-phone').value;
+      var code = document.getElementById('vendor-sms-code').value;
+      if(!phone){toast('请输入手机号');return}
+      if(!code){toast('请输入验证码');return}
+    }else{
+      var phone = document.getElementById('vendor-pwd-phone').value;
+      var pass = document.getElementById('vendor-pwd-pass').value;
+      if(!phone){toast('请输入手机号');return}
+      if(!pass){toast('请输入密码');return}
+    }
+  }else{
+    var id = document.getElementById('law-id').value;
+    var pass = document.getElementById('law-pass').value;
+    var dist = document.getElementById('law-district').value;
+    if(!id){toast('请输入工号');return}
+    if(!pass){toast('请输入密码');return}
+    if(!dist){toast('请选择辖区');return}
+  }
+
+  // 模拟登录成功
+  loginState[type] = true;
+  document.getElementById('login-'+type).classList.remove('show');
+
+  // 切换到对应Tab
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-item[data-page="'+type+'"]').classList.add('active');
+  document.getElementById('page-'+type).classList.add('active');
+
+  toast('登录成功');
+}
+
+function doLogout(type){
+  loginState[type] = false;
+  // 回到扫码公示页
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-item[data-page="scan"]').classList.add('active');
+  document.getElementById('page-scan').classList.add('active');
+  toast('已退出登录');
+}
+</script>
+</body>
+</html>
